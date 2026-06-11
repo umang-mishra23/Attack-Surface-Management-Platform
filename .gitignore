@@ -3,6 +3,7 @@ dist/
 build/
 target/
 .env
+.env.example
 .env.local
 data/*.json
 data/reports/
