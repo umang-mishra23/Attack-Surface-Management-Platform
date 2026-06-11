@@ -1,0 +1,45 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  config:
+    import:
+      - optional:file:../.env[.properties]
+      - optional:file:.env[.properties]
+  application:
+    name: sentinelasm-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://10.255.255.254:5432/asm_platform}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:asm_dev_password}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    default-property-inclusion: non_null
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-me-to-a-very-long-random-secret-at-least-32-bytes}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+
+scanner:
+  mode: ${ASM_SCAN_MODE:tools}
+  project-root: ${ASM_PROJECT_ROOT:..}
+  workspace: ${ASM_WORKSPACE:./data/workspace}
+  output-root: ${SUBMERGE_OUTPUT_ROOT:output}
+  timeout-seconds: ${SCAN_TIMEOUT_SECONDS:600}
+  tools:
+    submerge: ${SUBMERGE_PATH:recon-engine/submerge.sh}
+    httpx: ${HTTPX_PATH:httpx}
+    nmap: ${NMAP_PATH:nmap}
+    whatweb: ${WHATWEB_PATH:whatweb}
+    nuclei: ${NUCLEI_PATH:nuclei}
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method

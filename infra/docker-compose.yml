@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-asm_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-asm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asm_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-asm} -d ${POSTGRES_DB:-asm_platform}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-asm_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-asm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asm_dev_password}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-very-long-random-secret-at-least-32-bytes}
+      ASM_SCAN_MODE: ${ASM_SCAN_MODE:-mock}
+      ASM_PROJECT_ROOT: /workspace/project
+      ASM_WORKSPACE: /workspace
+      SUBMERGE_OUTPUT_ROOT: output
+      SUBMERGE_PATH: ${SUBMERGE_PATH:-recon-engine/submerge.sh}
+      HTTPX_PATH: ${HTTPX_PATH:-httpx}
+      NMAP_PATH: ${NMAP_PATH:-nmap}
+      WHATWEB_PATH: ${WHATWEB_PATH:-whatweb}
+      NUCLEI_PATH: ${NUCLEI_PATH:-nuclei}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ..:/workspace/project
+      - scanner-workspace:/workspace
+
+  frontend:
+    build:
+      context: ../frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres-data:
+  scanner-workspace:
